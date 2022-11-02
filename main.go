@@ -7,6 +7,9 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+
+	rounds_interface "main.go/interface"
+	p2p "main.go/keygen"
 )
 
 func p2p_func(c *gin.Context) {
@@ -14,7 +17,7 @@ func p2p_func(c *gin.Context) {
 	if start_p2p_flag == 1 {
 		return
 	} else {
-		go start_p2p()
+		go p2p.Start_p2p()
 		start_p2p_flag = 1
 	}
 	c.Status(http.StatusOK)
@@ -22,13 +25,13 @@ func p2p_func(c *gin.Context) {
 func test_connection(c *gin.Context) {
 	var TEST test_struct
 	c.BindJSON(&TEST)
-	peer_details_list = strings.Split(TEST.Peer_list, " ")
+	rounds_interface.Peer_details_list = strings.Split(TEST.Peer_list, " ")
 
 	test_conn() //Adds host ip and connects to all
 	time.Sleep(time.Second * 3)
 
 	c.JSON(http.StatusOK, gin.H{
-		"All ok": all_ok,
+		"All ok": rounds_interface.All_ok,
 	})
 }
 
@@ -36,12 +39,12 @@ func id_func(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"code":    http.StatusOK,
-		"Host IP": p2p.Host_ip, //.Host.ID()),
+		"Host IP": rounds_interface.P2p.Host_ip, //.Host.ID()),
 	})
 	// return
 }
 func defaults() {
-	status_struct.Chan = "81247"
+	rounds_interface.Status_struct.Chan = "81247"
 	start_p2p_flag = 0
 
 }
@@ -51,7 +54,7 @@ func gen_keyshares(c *gin.Context) {
 	//Send back data to send to cloud
 
 	c.JSON(http.StatusOK, gin.H{
-		"All ok": all_ok,
+		"All ok": rounds_interface.All_ok,
 	})
 }
 
@@ -61,14 +64,14 @@ func msg_sign(c *gin.Context) {
 	//Sign part signatre
 
 	c.JSON(http.StatusOK, gin.H{
-		"All ok": all_ok,
+		"All ok": rounds_interface.All_ok,
 	})
 }
 
 func main() {
 
 	defaults()
-	p2p = *start_p2p()
+	rounds_interface.P2p = *p2p.Start_p2p()
 	if debug == true {
 		local()
 

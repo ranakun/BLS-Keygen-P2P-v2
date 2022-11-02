@@ -1,15 +1,15 @@
-package main
+package comm
 
 //Message Struct
-type message struct {
+type Message struct {
 	Phase int
 	Name  string
 	Value string
 	To    string
 }
 
-type ack_message struct {
+type Ack_message struct {
 	Phase int
 }
 
-var ack_msg ack_message
+var ack_msg Ack_message

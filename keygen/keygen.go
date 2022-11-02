@@ -1,5 +1,4 @@
-// package keygen
-package main
+package keygen
 
 import (
 	"bufio"
@@ -14,13 +13,15 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"github.com/multiformats/go-multiaddr"
+	"main.go/comm"
+	rounds_interface "main.go/interface"
 )
 
-var N = 3
-var T = 2
+// var N = 3
+// var T = 2
 
 func ReadPeerInfoFromFile() map[string][]string {
-	f, err := os.Open("peer_" + strconv.Itoa(my_index) + ".txt")
+	f, err := os.Open("peer_" + strconv.Itoa(rounds_interface.My_index) + ".txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,18 +45,18 @@ func ReadPeerInfoFromFile() map[string][]string {
 	return d
 }
 
-func keygen() {
+func Keygen(N int, T int) {
 
-	peer_list := peer_details_list
+	peer_list := rounds_interface.Peer_details_list
 	//current_flag = "1"
 	// status_struct.Phase = 1
 	var protocolID protocol.ID = "/keygen/0.0.1"
 	//Start Listener
-	keygen_Stream_listener(p2p.Host)
+	Keygen_Stream_listener(rounds_interface.P2p.Host)
 	//Start Acknowledger
-	host_acknowledge(p2p.Host)
+	Host_acknowledge(rounds_interface.P2p.Host)
 
-	os.Create("peer_" + strconv.Itoa(my_index) + ".txt")
+	os.Create("peer_" + strconv.Itoa(rounds_interface.My_index) + ".txt")
 
 	//Generate broadcast wait time
 	time.Sleep(time.Second * 5)
@@ -64,23 +65,23 @@ func keygen() {
 	// send_data(peer_list, "ACK", "ACK", protocolID)
 	// wait_until(0)
 
-	p2p.Round = 1
-	round1_start(peer_list, protocolID)
-	p2p.Round = 2
-	round2_start(peer_list, protocolID)
-	p2p.Round = 3
-	round3_start(peer_list, protocolID)
-	p2p.Round = 4
-	round4_start(peer_list, protocolID)
+	rounds_interface.P2p.Round = 1
+	Round1_start(peer_list, protocolID)
+	rounds_interface.P2p.Round = 2
+	Round2_start(peer_list, protocolID, N, T)
+	rounds_interface.P2p.Round = 3
+	Round3_start(peer_list, protocolID)
+	rounds_interface.P2p.Round = 4
+	Round4_start(peer_list, protocolID)
 
 }
 
 func send_data(peer_list []string, value string, name string, protocolID protocol.ID) {
 
-	log.Println("Sending phase:", status_struct.Phase)
+	log.Println("Sending phase:", rounds_interface.Status_struct.Phase)
 	for i, item := range peer_list {
 		log.Println(item)
-		if i == my_index {
+		if i == rounds_interface.My_index {
 			continue
 		}
 		addr, _ := multiaddr.NewMultiaddr(item)
@@ -92,16 +93,16 @@ func send_data(peer_list []string, value string, name string, protocolID protoco
 
 		// peer_num, _ := strconv.Atoi(item)
 		// peer_num = peer_num + len(p2p.Peers)/2
-		message_send := message{
-			Phase: status_struct.Phase,
+		message_send := comm.Message{
+			Phase: rounds_interface.Status_struct.Phase,
 			Name:  name,
 			Value: value,
-			To:    peer_map[item],
+			To:    rounds_interface.Peer_map[item],
 		}
 
-		s, err := p2p.Host.NewStream(p2p.Ctx, peer_info.ID, protocolID)
+		s, err := rounds_interface.P2p.Host.NewStream(rounds_interface.P2p.Ctx, peer_info.ID, protocolID)
 		if err != nil {
-			log.Println(peer_map[item])
+			log.Println(rounds_interface.Peer_map[item])
 			log.Println(err, "Connecting to send message error")
 			return
 		}
@@ -124,19 +125,19 @@ func send_data(peer_list []string, value string, name string, protocolID protoco
 func wait_until(phase int) {
 	for {
 		flag := 0
-		for i, item := range peer_details_list {
+		for i, item := range rounds_interface.Peer_details_list {
 			item = strings.Split(item, "/")[len(strings.Split(item, "/"))-1]
-			if i == my_index {
+			if i == rounds_interface.My_index {
 				continue
 			}
-			if phase > receive_peer_phase[item] {
+			if phase > rounds_interface.Receive_peer_phase[item] {
 				// if phase > receive_peer_phase[item] {
 				// 	// Resend value to 'item'
 				// }
 				flag = 1
 				// log.Println("heres why: ", receive_peer_phase[item])
 			}
-			if phase > sent_peer_phase[item] {
+			if phase > rounds_interface.Sent_peer_phase[item] {
 				flag = 1
 				// log.Println("heres why: ", sent_peer_phase[item])
 			}

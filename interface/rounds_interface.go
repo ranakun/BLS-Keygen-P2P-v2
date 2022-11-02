@@ -1,6 +1,4 @@
-package main
-
-// package keygen
+package rounds_interface
 
 import (
 	"context"
@@ -20,22 +18,22 @@ import (
 // }
 
 // var peer_details_list []peer_details = make([]peer_details, 0, 10)
-var peer_details_list []string
+var Peer_details_list []string
 
 // var round = make(map[string]int)
-var peer_map = make(map[string]string)
+var Peer_map = make(map[string]string)
 
-var sorted_peer_id []string
-var my_index int = 0
+var Sorted_peer_id []string
+var My_index int = 0
 
 //Store the current phase value received
-var sent_peer_phase = make(map[string]int)
+var Sent_peer_phase = make(map[string]int)
 
 //Store the phase value of peer acknowledgement
-var receive_peer_phase = make(map[string]int)
+var Receive_peer_phase = make(map[string]int)
 
 //Lock map to avoid concurrent map writes
-var l = sync.Mutex{}
+var L = sync.Mutex{}
 
 type P2P struct {
 
@@ -48,7 +46,7 @@ type P2P struct {
 	Round     int
 }
 
-var p2p P2P
+var P2p P2P
 
 //Rework flags and channels to conform to this struct
 type Status struct {
@@ -61,25 +59,25 @@ type Round1_Data struct {
 	EPK_j map[string]string
 	EPK_i curves.Point
 	ESK_i curves.Scalar
-	curve *curves.Curve
+	Curve *curves.Curve
 }
 
 type Round2_Data struct {
 	BPK_i  kyber.Point
 	BPK_j  map[string]string
-	shares []*share.PriShare
-	suite  *bn256.Suite
+	Shares []*share.PriShare
+	Suite  *bn256.Suite
 }
 
 type Round3_Data struct {
-	fOfi map[string]string
+	FOfi map[string]string
 }
 
-var round1_data Round1_Data
-var round2_data Round2_Data
-var round3_data Round3_Data
+var Round1_data Round1_Data
+var Round2_data Round2_Data
+var Round3_data Round3_Data
 
-var status_struct Status
-var all_ok = true
+var Status_struct Status
+var All_ok = true
 
-var peer_index = make(map[string]int)
+var Peer_index = make(map[string]int)

@@ -1,4 +1,4 @@
-package main
+package keygen
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	connmgr "github.com/libp2p/go-libp2p/p2p/net/connmgr"
-
 	"github.com/multiformats/go-multiaddr"
+	rounds_interface "main.go/interface"
 )
 
 func PeerInSlice(a peer.ID, list []peer.ID) bool {
@@ -90,7 +90,7 @@ func create_host() (host.Host, error) {
 // 	}
 // }
 
-func start_p2p() *P2P {
+func Start_p2p() *rounds_interface.P2P {
 
 	//select {}
 
@@ -105,7 +105,7 @@ func start_p2p() *P2P {
 	// 	log.Println(i, item.addr.Addrs[0])
 	// }
 
-	return &P2P{
+	return &rounds_interface.P2P{
 		Host:      h,
 		Host_ip:   h.Addrs()[0].String() + "/p2p/" + h.ID().String(),
 		Host_peer: h.ID().String(),

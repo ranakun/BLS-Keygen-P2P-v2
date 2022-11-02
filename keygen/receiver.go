@@ -1,4 +1,4 @@
-package main
+package keygen
 
 import (
 	"bufio"
@@ -10,9 +10,11 @@ import (
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
+	"main.go/comm"
+	rounds_interface "main.go/interface"
 )
 
-func keygen_Stream_listener(h host.Host) {
+func Keygen_Stream_listener(h host.Host) {
 	//fmt.Println("Got a new stream!")
 
 	// Create a buffer stream for non blocking read and write.
@@ -32,7 +34,7 @@ func keygen_Stream_listener(h host.Host) {
 }
 
 func WriteLocalStorage(message string) {
-	filename := "peer_" + strconv.Itoa(my_index) + ".txt"
+	filename := "peer_" + strconv.Itoa(rounds_interface.My_index) + ".txt"
 
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
@@ -56,7 +58,7 @@ func process_input(s network.Stream, h host.Host) error {
 		return err
 	}
 	bytes := []byte(str)
-	var message_receive message
+	var message_receive comm.Message
 	json.Unmarshal(bytes, &message_receive)
 	//log.Println(s.Conn().RemotePeer())
 
@@ -73,36 +75,36 @@ func process_input(s network.Stream, h host.Host) error {
 		log.Println("Got epk_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 1")
 		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
-		acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 2 {
 		log.Println("Got bpk_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 2")
 		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
-		acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 3 {
 		log.Println("Got kgc_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 3")
 		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
-		acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 4 {
 		log.Println("Got spub_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 4")
 		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
-		acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 5 {
 		log.Println("Got kgd_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 5")
 		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
-		acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 6 {
 		log.Println("Got shares: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 6")
 		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
-		acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 7 {
 		log.Println("FIN")
 		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
-		acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	}
 
 	_, err = s.Write([]byte(""))

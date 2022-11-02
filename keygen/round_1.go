@@ -1,6 +1,4 @@
-package main
-
-// package keygen
+package keygen
 
 import (
 	"encoding/hex"
@@ -9,12 +7,13 @@ import (
 	"main.go/elgamal"
 
 	"github.com/libp2p/go-libp2p-core/protocol"
+	rounds_interface "main.go/interface"
 )
 
-func round1_start(peer_list []string, protocolID protocol.ID) {
+func Round1_start(peer_list []string, protocolID protocol.ID) {
 
 	// Elgamal Phase
-	status_struct.Phase = 1
+	rounds_interface.Status_struct.Phase = 1
 	curve := elgamal.Setup() // Choosen curve : ED25519
 	ESK_i, EPK_i := elgamal.KeyGen(curve)
 	fmt.Println("\nElgmal Private:" + string(ESK_i.BigInt().String()))
@@ -29,9 +28,9 @@ func round1_start(peer_list []string, protocolID protocol.ID) {
 		EPK_j[i] = j[0]
 	}
 
-	round1_data.EPK_i = EPK_i
-	round1_data.ESK_i = ESK_i
-	round1_data.EPK_j = EPK_j
-	round1_data.curve = curve
+	rounds_interface.Round1_data.EPK_i = EPK_i
+	rounds_interface.Round1_data.ESK_i = ESK_i
+	rounds_interface.Round1_data.EPK_j = EPK_j
+	rounds_interface.Round1_data.Curve = curve
 
 }
