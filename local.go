@@ -10,10 +10,10 @@ import (
 )
 
 func local() {
-	fmt.Println("Enter N: ")
+	fmt.Println("Enter number of peers: ")
 	var N int
 	fmt.Scan(&N)
-	fmt.Println("Enter T: ")
+	fmt.Println("Enter Threshold: ")
 	var T int
 	fmt.Scan(&T)
 	fmt.Println("Enter all addresses seperated by ',' and no space: ")

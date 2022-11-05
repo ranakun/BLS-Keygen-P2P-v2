@@ -57,6 +57,7 @@ func Keygen(N int, T int) {
 	Host_acknowledge(rounds_interface.P2p.Host)
 
 	os.Create("peer_" + strconv.Itoa(rounds_interface.My_index) + ".txt")
+	// os.MkdirAll("peer_Data/"+strconv.Itoa(rounds_interface.My_index), os.ModePerm)
 
 	//Generate broadcast wait time
 	time.Sleep(time.Second * 5)
