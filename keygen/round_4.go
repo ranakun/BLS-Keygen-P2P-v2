@@ -78,10 +78,10 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 			t_array = append(t_array, ind)
 			s_array = append(s_array, j)
 		}
-		lag := Lambda(int64(rounds_interface.My_index), t_array)
-		value = lag * sig
-		send_data(peer_list, value, "SIG_j", protocolID)
-		wait_until(9)
+		// lag := Lambda(int64(rounds_interface.My_index), t_array)
+		// value = curve.Scalar.Mul(lag,sig)
+		// send_data(peer_list, value, "SIG_j", protocolID)
+		// wait_until(9)
 	}
 
 	send_data(peer_list, "FIN", "FIN", protocolID)
