@@ -28,18 +28,9 @@ func Round2_start(peer_list []string, protocolID protocol.ID, N int, T int) {
 	send_data(peer_list, string(dst2), "bpk_j", protocolID)
 	wait_until(2)
 
-	//Send kgc_i values
+	rounds_interface.Round2_data.BPK_j = ReadPeerInfoFromFile("BPK_j")
+
 	rounds_interface.Status_struct.Phase = 3
-
-	msgs := ReadPeerInfoFromFile()
-	// fmt.Println(msgs)
-	BPK_j := make(map[string]string)
-	for i, j := range msgs {
-		BPK_j[i] = j[1]
-	}
-
-	rounds_interface.Round2_data.BPK_j = BPK_j
-
 	SecretPolynomial := share.NewPriPoly(suite.G2(), T, BSK_i, suite.RandomStream())
 	shares := SecretPolynomial.Shares(N)
 	rounds_interface.Round2_data.Shares = shares
@@ -58,19 +49,22 @@ func Round2_start(peer_list []string, protocolID protocol.ID, N int, T int) {
 		verificationSetString = append(verificationSetString, hex.EncodeToString(mar))
 	}
 	vssArray := fmt.Sprint(verificationSetString)
-	send_data(peer_list, vssArray[1:len(vssArray)-1], "vset", protocolID)
+	send_data(peer_list, vssArray[1:len(vssArray)-1], "Vset", protocolID)
+	wait_until(3)
 
 	kgd, kgc, SpubKey := zkp.SetupBLS(BSK_i)
 
-	send_data(peer_list, hex.EncodeToString(kgc), "kgc_j", protocolID)
-	wait_until(3)
-
+	//Send kgc_i values
 	rounds_interface.Status_struct.Phase = 4
-	send_data(peer_list, hex.EncodeToString(SpubKey), "sPubKey_j", protocolID)
+	send_data(peer_list, hex.EncodeToString(kgc), "kgc_j", protocolID)
 	wait_until(4)
 
 	rounds_interface.Status_struct.Phase = 5
-	send_data(peer_list, hex.EncodeToString(kgd), "kgd_j", protocolID)
+	send_data(peer_list, hex.EncodeToString(SpubKey), "sPubKey_j", protocolID)
 	wait_until(5)
+
+	rounds_interface.Status_struct.Phase = 6
+	send_data(peer_list, hex.EncodeToString(kgd), "kgd_j", protocolID)
+	wait_until(6)
 
 }

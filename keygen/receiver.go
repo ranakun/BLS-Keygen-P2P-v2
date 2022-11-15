@@ -33,9 +33,9 @@ func Keygen_Stream_listener(h host.Host) {
 
 }
 
-func WriteLocalStorage(message string) {
-	filename := "peer_" + strconv.Itoa(rounds_interface.My_index) + ".txt"
-
+func WriteLocalStorage(message string, name string) {
+	filename := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/" + name + ".txt"
+	//*** peer_Data/1/EPK_j.txt will be path of file for EPK_j of peer 1
 	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		log.Println(err)
@@ -74,36 +74,55 @@ func process_input(s network.Stream, h host.Host) error {
 	if message_receive.Phase == 1 {
 		log.Println("Got epk_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 1")
-		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "EPK_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 2 {
 		log.Println("Got bpk_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 2")
-		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "BPK_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
-	} else if message_receive.Phase == 3 {
-		log.Println("Got kgc_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
+	} else if message_receive.Phase == 3 && message_receive.Name == "Vset" {
+		log.Println("Got Vset: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 3")
-		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "Vset")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 4 {
-		log.Println("Got spub_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 4")
-		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
+		log.Println("Got KGC_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
+		fmt.Println("Phase 3")
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "KGC_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 5 {
-		log.Println("Got kgd_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 5")
-		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
+		log.Println("Got spub_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
+		fmt.Println("Phase 4")
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "SPUB_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 6 {
-		log.Println("Got shares: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 6")
-		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
+		log.Println("Got kgd_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
+		fmt.Println("Phase 5")
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "KGD_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
-	} else if message_receive.Phase == 7 {
+	} else if message_receive.Phase == 7 && message_receive.Name == "C1" {
+		log.Println("Got C1_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
+		fmt.Println("Phase 6")
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C1_j")
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+	} else if message_receive.Phase == 7 && message_receive.Name == "C2" {
+		log.Println("Got C2_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
+		fmt.Println("Phase 6")
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C2_j")
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+	} else if message_receive.Phase == 7 && message_receive.Name == "C3" {
+		log.Println("Got C3_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
+		fmt.Println("Phase 6")
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C3_j")
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+	} else if message_receive.Phase == 8 {
+		log.Println("Generating Sign")
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "Index")
+		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
+	} else if message_receive.Phase == 9 {
 		log.Println("FIN")
-		WriteLocalStorage(s.Conn().RemotePeer().String() + ">" + message_receive.Value)
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "FIN")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	}
 

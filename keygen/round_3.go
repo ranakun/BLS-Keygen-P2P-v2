@@ -6,7 +6,6 @@ import (
 	"log"
 	"math"
 	"os"
-	"strings"
 	"time"
 
 	"main.go/elgamal"
@@ -18,25 +17,27 @@ import (
 
 func Round3_start(peer_list []string, protocolID protocol.ID) {
 
-	msgs := ReadPeerInfoFromFile()
+	KGC_j := ReadPeerInfoFromFile("KGC_j")
+	KGD_j := ReadPeerInfoFromFile("KGD_j")
+	SPUB_j := ReadPeerInfoFromFile("SPUB_j")
 
-	for i, j := range msgs {
-		kgd, _ := hex.DecodeString(j[4])
-		kgc, _ := hex.DecodeString(j[2])
-		spk, _ := hex.DecodeString(j[3])
+	for i, j := range KGC_j {
+		kgd, _ := hex.DecodeString(KGD_j[i])
+		kgc, _ := hex.DecodeString(j)
+		spk, _ := hex.DecodeString(SPUB_j[i])
 
 		if !zkp.DecommitmentBLS(kgd, kgc, spk) {
 			fmt.Println("[-] ZKP Verication Failed")
 			os.Exit(0)
 		}
-		if rounds_interface.Round2_data.BPK_j[i] != j[3] {
+		if rounds_interface.Round2_data.BPK_j[i] != SPUB_j[i] {
 			fmt.Println("[-] Verification Failed -- INVALID PUBLIC KEY SHARE")
 			os.Exit(0)
 		}
 	}
 	log.Println("[+] Commitment Verified")
 
-	rounds_interface.Status_struct.Phase = 6
+	rounds_interface.Status_struct.Phase = 7
 	// k := 0
 	shares := rounds_interface.Round2_data.Shares
 	curve := rounds_interface.Round1_data.Curve
@@ -71,21 +72,24 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 	}
 	wait_until(6)
 	time.Sleep(time.Second * 5)
-	msgs = ReadPeerInfoFromFile()
+	C1j := ReadPeerInfoFromFile("C1_j")
+	C2j := ReadPeerInfoFromFile("C2_j")
+	C3j := ReadPeerInfoFromFile("C3_j")
+	vss := ReadPeerInfoFromFile("Vset")
 	fOfi := make(map[string]string)
-	for i, j := range msgs {
+	for i := range C1j {
 		C1_j := curve.Point
-		C1_j_Temp, err := hex.DecodeString(j[6+(rounds_interface.My_index*3)])
+		C1_j_Temp, err := hex.DecodeString(C1j[i])
 		if err != nil {
-			fmt.Println("0", err, j[6+(rounds_interface.My_index*3)])
+			fmt.Println("0", err, C1j[i])
 		}
 		C1_j, err = C1_j.FromAffineCompressed(C1_j_Temp)
 		if err != nil {
 			fmt.Println("1", err, C1_j_Temp, rounds_interface.My_index)
 		}
 
-		C2_j := j[7+(rounds_interface.My_index*3)]
-		C3_j, err := hex.DecodeString(j[8+(rounds_interface.My_index*3)])
+		C2_j := C2j[i]
+		C3_j, err := hex.DecodeString(C3j[i])
 		if err != nil {
 			fmt.Println("2", err)
 		}
@@ -104,7 +108,9 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 		fi := suite.G2().Scalar()
 		fi.UnmarshalBinary(mar)
 
-		verification_set_string_j := strings.Split(j[5], " ")
+		var verification_set_string_j []string
+		verification_set_string_j[0] = SPUB_j[i]
+		verification_set_string_j[1] = vss[i]
 		lhs := suite.G2().Point().Null()
 		for ix, jx := range verification_set_string_j {
 			tp := suite.G2().Point().Null()

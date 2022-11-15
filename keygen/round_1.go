@@ -21,16 +21,9 @@ func Round1_start(peer_list []string, protocolID protocol.ID) {
 	send_data(peer_list, hex.EncodeToString(mar), "epk_j", protocolID)
 	wait_until(1)
 
-	// receive and store EPK_j
-	msgs := ReadPeerInfoFromFile()
-	EPK_j := make(map[string]string)
-	for i, j := range msgs {
-		EPK_j[i] = j[0]
-	}
-
 	rounds_interface.Round1_data.EPK_i = EPK_i
 	rounds_interface.Round1_data.ESK_i = ESK_i
-	rounds_interface.Round1_data.EPK_j = EPK_j
+	rounds_interface.Round1_data.EPK_j = ReadPeerInfoFromFile("EPK_j")
 	rounds_interface.Round1_data.Curve = curve
 
 }

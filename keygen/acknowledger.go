@@ -22,9 +22,13 @@ func Acknowledge(peerID string, phase int, h host.Host) {
 	rounds_interface.Sent_peer_phase[peerID] = phase
 
 	//Send acknowledgement
-	peer_ip, _ := rounds_interface.Peer_map[peerID]
+	peer_ip := rounds_interface.Peer_map[peerID]
 	addr, _ := multiaddr.NewMultiaddr(peer_ip)
 	peer_info, err := peer.AddrInfoFromP2pAddr(addr)
+	if err != nil {
+		log.Println(err, addr, peer_info, "Error in getting addr Info")
+		return
+	}
 	s, err := h.NewStream(context.Background(), peer_info.ID, "/ack/0.0.1")
 	if err != nil {
 		log.Println(err, "Error in creating connection")

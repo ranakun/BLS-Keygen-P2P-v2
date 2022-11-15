@@ -175,7 +175,7 @@ func AggregateSignatures(suite pairing.Suite, sigs [][]byte, mask *sign.Mask) (k
 		if err != nil {
 			return nil, err
 		}
-
+		// sigC = sig.clone().Mul(lambda2(t,i),sig)
 		sigC := sig.Clone().Mul(coefs[peerIndex], sig)
 		// c+1 because R is in the range [1, 2^128] and not [0, 2^128-1]
 		sigC = sigC.Add(sigC, sig)

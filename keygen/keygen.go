@@ -17,25 +17,20 @@ import (
 	rounds_interface "main.go/interface"
 )
 
-// var N = 3
-// var T = 2
-
-func ReadPeerInfoFromFile() map[string][]string {
-	f, err := os.Open("peer_" + strconv.Itoa(rounds_interface.My_index) + ".txt")
+func ReadPeerInfoFromFile(name string) map[string]string {
+	f, err := os.Open("peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/" + name + ".txt")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var d = make(map[string][]string)
+	var d = make(map[string]string)
 
 	// read the file line by line using scanner
 	scanner := bufio.NewScanner(f)
 
-	i := 0
 	for scanner.Scan() {
 		res := strings.Split(scanner.Text(), ">")
-		d[res[0]] = append(d[res[0]], res[1])
-		i += 1
+		d[res[0]] = res[1]
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
@@ -49,15 +44,13 @@ func Keygen(N int, T int) {
 
 	peer_list := rounds_interface.Peer_details_list
 	//current_flag = "1"
-	// status_struct.Phase = 1
 	var protocolID protocol.ID = "/keygen/0.0.1"
 	//Start Listener
 	Keygen_Stream_listener(rounds_interface.P2p.Host)
 	//Start Acknowledger
 	Host_acknowledge(rounds_interface.P2p.Host)
 
-	os.Create("peer_" + strconv.Itoa(rounds_interface.My_index) + ".txt")
-	// os.MkdirAll("peer_Data/"+strconv.Itoa(rounds_interface.My_index), os.ModePerm)
+	os.MkdirAll("peer_Data/"+strconv.Itoa(rounds_interface.My_index), os.ModePerm)
 
 	//Generate broadcast wait time
 	time.Sleep(time.Second * 5)

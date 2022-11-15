@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"go.dedis.ch/kyber/v3"
 	"main.go/bls"
 
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -58,9 +59,56 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 	}
 	time.Sleep(time.Second * 5)
 
-	rounds_interface.Status_struct.Phase = 7
+	rounds_interface.Status_struct.Phase = 8
+
+	fmt.Println("will participate in signing? Enter(Y/N)")
+	var reply string
+	fmt.Scan(&reply)
+	if reply == "Y" {
+		value := strconv.Itoa(rounds_interface.My_index) + ">" + hex.EncodeToString(sig)
+		send_data(peer_list, value, "Index", protocolID)
+		wait_until(8)
+		rounds_interface.Status_struct.Phase = 9
+
+		msgs := ReadPeerInfoFromFile("Index")
+		var t_array []int
+		var s_array []string
+		for i, j := range msgs {
+			ind, _ := strconv.Atoi(i)
+			t_array = append(t_array, ind)
+			s_array = append(s_array, j)
+		}
+		lag := Lambda(int64(rounds_interface.My_index), t_array)
+		value = lag * sig
+		send_data(peer_list, value, "SIG_j", protocolID)
+		wait_until(9)
+	}
+
 	send_data(peer_list, "FIN", "FIN", protocolID)
 	wait_until(7)
 
 	time.Sleep(time.Second * 5)
+}
+
+func Lambda(j int64, t_array []int) kyber.Scalar {
+	var i int64
+	den := curve.Scalar().One()
+	var LagCoeff = curve.Scalar().One()        //
+	var J kyber.Scalar = curve.Scalar().Zero() //Converting j to kyber scalar from int64
+	J.SetInt64(j)
+
+	for i = 0; i < int64(len(t_array)); i++ {
+		if int64(t_array[i]) == j {
+			continue
+		}
+
+		var I kyber.Scalar = curve.Scalar().Zero()
+		I.SetInt64(int64(t_array[i]))
+		den.Sub(I, J)               //den=(i-j)
+		den.Inv(den)                //1/(i-j)
+		den.Mul(den, I)             //i/(i-j)
+		LagCoeff.Mul(LagCoeff, den) // product (i/(i-j)) for each i from 1 to t such that i!=j
+	}
+	fmt.Println(LagCoeff.String())
+	return LagCoeff
 }

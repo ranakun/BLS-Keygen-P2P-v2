@@ -10,12 +10,12 @@ import (
 )
 
 func local() {
-	fmt.Println("Enter number of peers: ")
-	var N int
-	fmt.Scan(&N)
-	fmt.Println("Enter Threshold: ")
-	var T int
-	fmt.Scan(&T)
+	// fmt.Println("Enter number of peers: ")
+	// var N int
+	// fmt.Scan(&N)
+	// fmt.Println("Enter Threshold: ")
+	// var T int
+	// fmt.Scan(&T)
 	fmt.Println("Enter all addresses seperated by ',' and no space: ")
 	var inp_strings string
 	fmt.Scan(&inp_strings)
@@ -30,6 +30,7 @@ func local() {
 	time.Sleep(time.Second * 5)
 
 	test_conn()
-	keygen.Keygen(N, T)
+	keygen.Keygen(3, 2)
+	// keygen.Keygen(N, T)
 
 }
