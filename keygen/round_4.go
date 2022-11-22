@@ -55,60 +55,65 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 	} else {
 		fmt.Println("\n[*] TESTING")
 		fmt.Println("Message: ", string(msg))
-		fmt.Println("Signature Share: ", hex.EncodeToString(sig))
+		// fmt.Println("Signature Share: ", hex.EncodeToString(sig))
+		fmt.Println("Signature Share: ", sig)
 	}
 	time.Sleep(time.Second * 5)
-
-	rounds_interface.Status_struct.Phase = 8
-
+	f1 := suite.G2().Scalar()
+	rounds_interface.Status_struct.Phase = 10
 	fmt.Println("will participate in signing? Enter(Y/N)")
 	var reply string
 	fmt.Scan(&reply)
-	if reply == "Y" {
-		value := strconv.Itoa(rounds_interface.My_index) + ">" + hex.EncodeToString(sig)
-		send_data(peer_list, value, "Index", protocolID)
-		wait_until(8)
-		rounds_interface.Status_struct.Phase = 9
-
-		msgs := ReadPeerInfoFromFile("Index")
-		var t_array []int
-		var s_array []string
-		for i, j := range msgs {
-			ind, _ := strconv.Atoi(i)
-			t_array = append(t_array, ind)
-			s_array = append(s_array, j)
-		}
-		// lag := Lambda(int64(rounds_interface.My_index), t_array)
-		// value = curve.Scalar.Mul(lag,sig)
-		// send_data(peer_list, value, "SIG_j", protocolID)
-		// wait_until(9)
+	wait_until(10)
+	if reply == "N" {
+		rounds_interface.Status_struct.Phase = 12
+		send_data(peer_list, "Non Participant", "FIN", protocolID)
+		wait_until(12)
+		time.Sleep(time.Second * 5)
 	}
-
-	send_data(peer_list, "FIN", "FIN", protocolID)
-	wait_until(7)
-
-	time.Sleep(time.Second * 5)
+	if reply == "Y" {
+		rounds_interface.Status_struct.Phase = 11
+		rounds_interface.T_array = append(rounds_interface.T_array, rounds_interface.My_index+1)
+		lag := Lambda(int64(rounds_interface.My_index+1), rounds_interface.T_array)
+		value := suite.Point()
+		value = value.Mul(lag, sig)
+		send_data(peer_list, value.String(), "LagXSIG", protocolID)
+		wait_until(11)
+		sum := value
+		rounds_interface.Status_struct.Phase = 12
+		msgs := ReadPeerInfoFromFile("LagXSIG_j")
+		for j := range msgs {
+			// convert string to kyber.scalar
+			a, _ := hex.DecodeString(j)
+			sum = sum.Add(sum, f1.SetBytes(a))
+		}
+		// fmt.Println("FIN: ",sum)
+		send_data(peer_list, sum.String(), "FIN", protocolID)
+		wait_until(12)
+		time.Sleep(time.Second * 5)
+	}
 }
 
-func Lambda(j int64, t_array []int) kyber.Scalar {
+func Lambda(j int64, T_array []int) kyber.Scalar {
 	var i int64
+	curve := rounds_interface.Round2_data.Suite.G2()
 	den := curve.Scalar().One()
 	var LagCoeff = curve.Scalar().One()        //
 	var J kyber.Scalar = curve.Scalar().Zero() //Converting j to kyber scalar from int64
 	J.SetInt64(j)
 
-	for i = 0; i < int64(len(t_array)); i++ {
-		if int64(t_array[i]) == j {
+	for i = 0; i < int64(len(T_array)); i++ {
+		if int64(T_array[i]) == j {
 			continue
 		}
 
 		var I kyber.Scalar = curve.Scalar().Zero()
-		I.SetInt64(int64(t_array[i]))
+		I.SetInt64(int64(T_array[i]))
 		den.Sub(I, J)               //den=(i-j)
 		den.Inv(den)                //1/(i-j)
 		den.Mul(den, I)             //i/(i-j)
 		LagCoeff.Mul(LagCoeff, den) // product (i/(i-j)) for each i from 1 to t such that i!=j
 	}
-	fmt.Println(LagCoeff.String())
+	// fmt.Println(LagCoeff.String())
 	return LagCoeff
 }

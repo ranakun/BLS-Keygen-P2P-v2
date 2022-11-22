@@ -81,47 +81,47 @@ func process_input(s network.Stream, h host.Host) error {
 		fmt.Println("Phase 2")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "BPK_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
-	} else if message_receive.Phase == 3 && message_receive.Name == "Vset" {
+	} else if message_receive.Phase == 3 {
 		log.Println("Got Vset: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 3")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "Vset")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 4 {
 		log.Println("Got KGC_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 3")
+		fmt.Println("Phase 4")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "KGC_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 5 {
 		log.Println("Got spub_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 4")
+		fmt.Println("Phase 5")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "SPUB_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 6 {
 		log.Println("Got kgd_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 5")
+		fmt.Println("Phase 6")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "KGD_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 7 && message_receive.Name == "C1" {
 		log.Println("Got C1_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 6")
+		fmt.Println("Phase 7")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C1_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 7 && message_receive.Name == "C2" {
 		log.Println("Got C2_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 6")
+		fmt.Println("Phase 7")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C2_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 7 && message_receive.Name == "C3" {
 		log.Println("Got C3_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
-		fmt.Println("Phase 6")
+		fmt.Println("Phase 7")
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C3_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
-	} else if message_receive.Phase == 8 {
-		log.Println("Generating Sign")
-		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "Index")
+	} else if message_receive.Phase == 11 {
+		log.Println("Lagrange*Signature:", message_receive.Value, " from ", s.Conn().RemotePeer())
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "LagXSIG_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
-	} else if message_receive.Phase == 9 {
-		log.Println("FIN")
+	} else if message_receive.Phase == 12 {
+		log.Println("FIN:", message_receive.Value)
 		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "FIN")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	}

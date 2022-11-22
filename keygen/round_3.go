@@ -6,6 +6,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strings"
 	"time"
 
 	"main.go/elgamal"
@@ -45,6 +46,7 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 	EPK_i := rounds_interface.Round1_data.EPK_i
 	EPK_j := rounds_interface.Round1_data.EPK_j
 	for i, share := range shares {
+		fmt.Println("------->", i)
 		if i == rounds_interface.My_index {
 			sh, _ := share.V.MarshalBinary()
 			shareStr := hex.EncodeToString(sh)
@@ -70,16 +72,16 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 			send_data(peer_list, hex.EncodeToString(C3), "C3", protocolID)
 		}
 	}
-	wait_until(6)
+	wait_until(7)
 	time.Sleep(time.Second * 5)
 	C1j := ReadPeerInfoFromFile("C1_j")
 	C2j := ReadPeerInfoFromFile("C2_j")
 	C3j := ReadPeerInfoFromFile("C3_j")
 	vss := ReadPeerInfoFromFile("Vset")
 	fOfi := make(map[string]string)
-	for i := range C1j {
+	for i, j := range C1j {
 		C1_j := curve.Point
-		C1_j_Temp, err := hex.DecodeString(C1j[i])
+		C1_j_Temp, err := hex.DecodeString(j)
 		if err != nil {
 			fmt.Println("0", err, C1j[i])
 		}
@@ -108,9 +110,7 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 		fi := suite.G2().Scalar()
 		fi.UnmarshalBinary(mar)
 
-		var verification_set_string_j []string
-		verification_set_string_j[0] = SPUB_j[i]
-		verification_set_string_j[1] = vss[i]
+		verification_set_string_j := strings.Split(vss[i], " ")
 		lhs := suite.G2().Point().Null()
 		for ix, jx := range verification_set_string_j {
 			tp := suite.G2().Point().Null()

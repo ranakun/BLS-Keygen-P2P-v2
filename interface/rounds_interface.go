@@ -55,6 +55,8 @@ type Status struct {
 	Num_peers int
 }
 
+var T_array []int
+
 type Round1_Data struct {
 	EPK_j map[string]string
 	EPK_i curves.Point
