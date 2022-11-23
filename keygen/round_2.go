@@ -28,6 +28,7 @@ func Round2_start(peer_list []string, protocolID protocol.ID, N int, T int) {
 	send_data(peer_list, string(dst2), "bpk_j", protocolID, "")
 	wait_until(2)
 
+	rounds_interface.Round2_data.Suite = suite
 	rounds_interface.Round2_data.BPK_i = BPK_i
 	rounds_interface.Round2_data.BPK_j = ReadPeerInfoFromFile("BPK_j")
 

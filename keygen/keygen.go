@@ -40,7 +40,7 @@ func ReadPeerInfoFromFile(name string) map[string]string {
 	return d
 }
 func ReadShare(name string, detail string) string {
-	f, err := os.Open("peer_Data/" + detail + "/" + "to " + strconv.Itoa(rounds_interface.My_index) + "/" + name + ".txt")
+	f, err := os.Open("peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/" + "from " + detail + "/" + name + ".txt")
 	if err != nil {
 		log.Fatal(err)
 	}

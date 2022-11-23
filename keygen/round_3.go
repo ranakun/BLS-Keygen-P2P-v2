@@ -71,7 +71,8 @@ func Round3_start(peer_list []string, protocolID protocol.ID, N int) {
 				fmt.Println(err, temp, rounds_interface.Sorted_peer_id)
 			}
 			C1, C2, C3 := elgamal.AuthEncryption(curve, shareStr, ESK_i, EPK_i, epk_j)
-			detail := fmt.Sprint(i)
+			detail := fmt.Sprint(rounds_interface.My_index) + ">" + fmt.Sprint(i)
+			fmt.Println(rounds_interface.My_index, "*****Sending to*****", fmt.Sprint(i))
 			send_data(peer_list, hex.EncodeToString(C1.ToAffineCompressed()), "C1", protocolID, detail)
 			send_data(peer_list, C2, "C2", protocolID, detail)
 			send_data(peer_list, hex.EncodeToString(C3), "C3", protocolID, detail)

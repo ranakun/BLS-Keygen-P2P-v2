@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -48,21 +49,26 @@ func WriteLocalStorage(message string, name string) {
 }
 func WriteLocalShareStorage(message string, name string, detail string) {
 	// filename := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/to " + detail + "/" + name + ".txt"
-	path := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/to " + detail + "/"
-	err := os.MkdirAll(path, os.ModePerm)
-	if err != nil {
-		log.Println(err)
-	}
-	filename := path + name + ".txt"
-	//*** peer_Data/1/EPK_j.txt will be path of file for EPK_j of peer 1
-	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		log.Println(err)
-	}
-	defer f.Close()
+	res := strings.Split(detail, ">")
+	sender := res[0]
+	temp, _ := strconv.Atoi(res[1])
+	if temp == rounds_interface.My_index {
+		path := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/from " + sender + "/"
+		err := os.MkdirAll(path, os.ModePerm)
+		if err != nil {
+			log.Println(err)
+		}
+		filename := path + name + ".txt"
+		//*** peer_Data/1/EPK_j.txt will be path of file for EPK_j of peer 1
+		f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			log.Println(err)
+		}
+		defer f.Close()
 
-	if _, err = f.WriteString(message + "\n"); err != nil {
-		log.Println(err)
+		if _, err = f.WriteString(message + "\n"); err != nil {
+			log.Println(err)
+		}
 	}
 }
 
