@@ -67,31 +67,35 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 		fmt.Println(errr)
 	}
 
-	rounds_interface.Status_struct.Phase = 10
+	// rounds_interface.Status_struct.Phase = 8
 	fmt.Println("will participate in signing? Enter(Y/N)")
 	var reply string
-	fmt.Scan(&reply)
-	wait_until(10)
+	// fmt.Scan(&reply)
+	reply = "Y"
+	// wait_until(8)
 	if reply == "N" {
-		rounds_interface.Status_struct.Phase = 12
+		rounds_interface.Status_struct.Phase = 10
 		send_data(peer_list, "Non Participant", "FIN", protocolID, "")
-		wait_until(12)
+		wait_until(10)
 		time.Sleep(time.Second * 5)
 	}
 	if reply == "Y" {
-		rounds_interface.Status_struct.Phase = 11
-		rounds_interface.T_array = append(rounds_interface.T_array, rounds_interface.My_index+1)
-		lag := Lambda(int64(rounds_interface.My_index+1), rounds_interface.T_array)
-		value := suite.Point()
+		rounds_interface.Status_struct.Phase = 9
+		T_array := []int{1, 2}
+		// rounds_interface.T_array = append(rounds_interface.T_array, rounds_interface.My_index+1)
+		lag := Lambda(int64(rounds_interface.My_index+1), T_array)
+		value := suite.G1().Point()
 		value = value.Mul(lag, sig)
-		send_data(peer_list, value.String(), "LagXSIG", protocolID, "")
-		wait_until(11)
+		temp, _ := encoding.PointToStringHex(suite.G1(), value)
+		send_data(peer_list, temp, "LagXSIG", protocolID, "")
+		wait_until(9)
 		sum := value
-		rounds_interface.Status_struct.Phase = 12
+		rounds_interface.Status_struct.Phase = 10
 		msgs := ReadPeerInfoFromFile("LagXSIG_j")
-		for j := range msgs {
+		for _, j := range msgs {
 			// convert string to kyber.point
 			a, _ := encoding.StringHexToPoint(suite.G1(), j)
+			fmt.Println(a)
 			sum = sum.Add(sum, a)
 		}
 		//// verify combined signature
@@ -100,9 +104,8 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 		if e != nil {
 			fmt.Println(e)
 		}
-
 		send_data(peer_list, sum.String(), "FIN", protocolID, "")
-		wait_until(12)
+		wait_until(10)
 		time.Sleep(time.Second * 5)
 	}
 }
