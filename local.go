@@ -30,7 +30,7 @@ func local() {
 	time.Sleep(time.Second * 5)
 
 	test_conn()
-	keygen.Keygen(3, 2)
+	keygen.Keygen(2, 2)
 	// keygen.Keygen(N, T)
 
 }

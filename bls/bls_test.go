@@ -18,8 +18,9 @@ func TestBLS(t *testing.T) {
 	msg := []byte("Hello Boneh-Lynn-Shacham")
 	suite := bn256.NewSuite()
 	private, public := KeyGen(suite, random.New())
-	sig, err := Sign(suite, private, msg)
+	si, err := Sign(suite, private, msg)
 	require.Nil(t, err)
+	sig, _ := si.MarshalBinary()
 	err = Verify(suite, public, msg, sig)
 	require.Nil(t, err)
 }
@@ -28,8 +29,9 @@ func TestBLSFailSig(t *testing.T) {
 	msg := []byte("Hello Boneh-Lynn-Shacham")
 	suite := bn256.NewSuite()
 	private, public := KeyGen(suite, random.New())
-	sig, err := Sign(suite, private, msg)
+	si, err := Sign(suite, private, msg)
 	require.Nil(t, err)
+	sig, _ := si.MarshalBinary()
 	sig[0] ^= 0x01
 	if Verify(suite, public, msg, sig) == nil {
 		t.Fatal("FATAL: bls verification succeeded - unexpectedly; EXPECTED FAIL")
@@ -40,7 +42,8 @@ func TestBLSFailKey(t *testing.T) {
 	msg := []byte("Hello Boneh-Lynn-Shacham")
 	suite := bn256.NewSuite()
 	private, _ := KeyGen(suite, random.New())
-	sig, err := Sign(suite, private, msg)
+	si, err := Sign(suite, private, msg)
+	sig, _ := si.MarshalBinary()
 	require.Nil(t, err)
 	_, public := KeyGen(suite, random.New())
 	if Verify(suite, public, msg, sig) == nil {
@@ -64,7 +67,8 @@ func TestBLSNull(t *testing.T) {
 	msg := []byte("Hello Boneh-Lynn-Shacham")
 	suite := bn256.NewSuite()
 	private, _ := KeyGen(suite, random.New())
-	sig, err := Sign(suite, private, msg)
+	si, err := Sign(suite, private, msg)
+	sig, _ := si.MarshalBinary()
 	require.Nil(t, err)
 	public := suite.G2().Point() // generates a null point
 	public.Null()
@@ -79,7 +83,8 @@ func TestBLSP(t *testing.T) {
 	msg := []byte("Hello Boneh-Lynn-Shacham")
 	suite := bn256.NewSuite()
 	private, pub := KeyGen(suite, random.New())
-	sig, err := Sign(suite, private, msg)
+	si, err := Sign(suite, private, msg)
+	sig, _ := si.MarshalBinary()
 	require.Nil(t, err)
 	public := suite.G2().Point().Base() // generates a null point
 	public.Null()
@@ -113,7 +118,8 @@ func BenchmarkBLSVerify(b *testing.B) {
 	msg := []byte("Hello Boneh-Lynn-Shacham")
 	suite := bn256.NewSuite()
 	private, public := KeyGen(suite, random.New())
-	sig, _ := Sign(suite, private, msg)
+	si, _ := Sign(suite, private, msg)
+	sig, _ := si.MarshalBinary()
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -160,10 +166,12 @@ func TestBDN_AggregateSignatures(t *testing.T) {
 	suite := bn256.NewSuite()
 	private1, public1 := KeyGen(suite, random.New())
 	private2, public2 := KeyGen(suite, random.New())
-	sig1, err := Sign(suite, private1, msg)
+	si1, err := Sign(suite, private1, msg)
 	require.NoError(t, err)
-	sig2, err := Sign(suite, private2, msg)
+	sig1, _ := si1.MarshalBinary()
+	si2, err := Sign(suite, private2, msg)
 	require.NoError(t, err)
+	sig2, _ := si2.MarshalBinary()
 
 	mask, _ := sign.NewMask(suite, []kyber.Point{public1, public2}, nil)
 	mask.SetBit(0, true)
@@ -198,10 +206,12 @@ func TestBDN_SubsetSignature(t *testing.T) {
 	private1, public1 := KeyGen(suite, random.New())
 	private2, public2 := KeyGen(suite, random.New())
 	_, public3 := KeyGen(suite, random.New())
-	sig1, err := Sign(suite, private1, msg)
+	si1, err := Sign(suite, private1, msg)
+	sig1, _ := si1.MarshalBinary()
 	require.NoError(t, err)
-	sig2, err := Sign(suite, private2, msg)
+	si2, err := Sign(suite, private2, msg)
 	require.NoError(t, err)
+	sig2, _ := si2.MarshalBinary()
 
 	mask, _ := sign.NewMask(suite, []kyber.Point{public1, public3, public2}, nil)
 	mask.SetBit(0, true)
@@ -233,8 +243,9 @@ func TestBDN_RogueAttack(t *testing.T) {
 
 	pubs := []kyber.Point{public1, rogue}
 
-	sig, err := Sign(suite, private2, msg)
+	si, err := Sign(suite, private2, msg)
 	require.NoError(t, err)
+	sig, _ := si.MarshalBinary()
 
 	//  Old scheme not resistant to the attack
 	agg := bls.AggregatePublicKeys(suite, pubs...)
@@ -254,10 +265,12 @@ func Benchmark_BDN_AggregateSigs(b *testing.B) {
 	private1, public1 := KeyGen(suite, random.New())
 	private2, public2 := KeyGen(suite, random.New())
 	msg := []byte("Hello many times Boneh-Lynn-Shacham")
-	sig1, err := Sign(suite, private1, msg)
+	si1, err := Sign(suite, private1, msg)
 	require.Nil(b, err)
-	sig2, err := Sign(suite, private2, msg)
+	sig1, _ := si1.MarshalBinary()
+	si2, err := Sign(suite, private2, msg)
 	require.Nil(b, err)
+	sig2, _ := si2.MarshalBinary()
 
 	mask, _ := sign.NewMask(suite, []kyber.Point{public1, public2}, nil)
 	mask.SetBit(0, true)

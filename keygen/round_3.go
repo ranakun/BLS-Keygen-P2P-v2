@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"log"
+
 	"math"
 	"os"
 	"strings"
@@ -16,7 +17,7 @@ import (
 	rounds_interface "main.go/interface"
 )
 
-func Round3_start(peer_list []string, protocolID protocol.ID) {
+func Round3_start(peer_list []string, protocolID protocol.ID, N int) {
 
 	KGC_j := ReadPeerInfoFromFile("KGC_j")
 	KGD_j := ReadPeerInfoFromFile("KGD_j")
@@ -45,15 +46,18 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 	ESK_i := rounds_interface.Round1_data.ESK_i
 	EPK_i := rounds_interface.Round1_data.EPK_i
 	EPK_j := rounds_interface.Round1_data.EPK_j
+
 	for i, share := range shares {
-		fmt.Println("------->", i)
 		if i == rounds_interface.My_index {
 			sh, _ := share.V.MarshalBinary()
 			shareStr := hex.EncodeToString(sh)
 			C1, C2, C3 := elgamal.AuthEncryption(curve, shareStr, ESK_i, EPK_i, EPK_i)
-			send_data(peer_list, hex.EncodeToString(C1.ToAffineCompressed()), "C1", protocolID)
-			send_data(peer_list, C2, "C2", protocolID)
-			send_data(peer_list, hex.EncodeToString(C3), "C3", protocolID)
+			// send_data(peer_list, hex.EncodeToString(C1.ToAffineCompressed()), "C1", protocolID)
+			// send_data(peer_list, C2, "C2", protocolID)
+			// send_data(peer_list, hex.EncodeToString(C3), "C3", protocolID)
+			rounds_interface.Round3_data.C1 = C1
+			rounds_interface.Round3_data.C2 = C2
+			rounds_interface.Round3_data.C3 = C3
 		} else {
 			sh, _ := share.V.MarshalBinary()
 			shareStr := hex.EncodeToString(sh)
@@ -67,37 +71,45 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 				fmt.Println(err, temp, rounds_interface.Sorted_peer_id)
 			}
 			C1, C2, C3 := elgamal.AuthEncryption(curve, shareStr, ESK_i, EPK_i, epk_j)
-			send_data(peer_list, hex.EncodeToString(C1.ToAffineCompressed()), "C1", protocolID)
-			send_data(peer_list, C2, "C2", protocolID)
-			send_data(peer_list, hex.EncodeToString(C3), "C3", protocolID)
+			detail := fmt.Sprint(i)
+			send_data(peer_list, hex.EncodeToString(C1.ToAffineCompressed()), "C1", protocolID, detail)
+			send_data(peer_list, C2, "C2", protocolID, detail)
+			send_data(peer_list, hex.EncodeToString(C3), "C3", protocolID, detail)
 		}
 	}
 	wait_until(7)
 	time.Sleep(time.Second * 5)
-	C1j := ReadPeerInfoFromFile("C1_j")
-	C2j := ReadPeerInfoFromFile("C2_j")
-	C3j := ReadPeerInfoFromFile("C3_j")
 	vss := ReadPeerInfoFromFile("Vset")
 	fOfi := make(map[string]string)
-	for i, j := range C1j {
+	for i := 0; i < N; i++ {
+		if i == rounds_interface.My_index {
+			continue
+		}
+		C1j := ReadShare("C1_j", fmt.Sprint(i))
+		C2j := ReadShare("C2_j", fmt.Sprint(i))
+		C3j := ReadShare("C3_j", fmt.Sprint(i))
 		C1_j := curve.Point
-		C1_j_Temp, err := hex.DecodeString(j)
+		C1_j_Temp, err := hex.DecodeString(C1j)
+		// C1_j_Temp, err := hex.DecodeString(j[0])
 		if err != nil {
-			fmt.Println("0", err, C1j[i])
+			fmt.Println("0", err, C1j)
+			// fmt.Println("0", err, C1j[i][0])
 		}
 		C1_j, err = C1_j.FromAffineCompressed(C1_j_Temp)
 		if err != nil {
-			fmt.Println("1", err, C1_j_Temp, rounds_interface.My_index)
+			fmt.Println("1", err, C1_j_Temp, 1)
+			// fmt.Println("1", err, C1_j_Temp, rounds_interface.My_index)
 		}
 
-		C2_j := C2j[i]
-		C3_j, err := hex.DecodeString(C3j[i])
+		C2_j := C2j
+		C3_j, err := hex.DecodeString(C3j)
+		// C3_j, err := hex.DecodeString(C3j[i][0])
 		if err != nil {
 			fmt.Println("2", err)
 		}
 
 		epkj := curve.Point
-		epkj_temp, _ := hex.DecodeString(EPK_j[i])
+		epkj_temp, _ := hex.DecodeString(EPK_j[rounds_interface.Sorted_peer_id[i]])
 		epkj, _ = epkj.FromAffineCompressed(epkj_temp)
 		dec, err1 := elgamal.AuthDecryption(C1_j, C2_j, C3_j, epkj, EPK_i, ESK_i)
 		if !err1 {
@@ -110,7 +122,7 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 		fi := suite.G2().Scalar()
 		fi.UnmarshalBinary(mar)
 
-		verification_set_string_j := strings.Split(vss[i], " ")
+		verification_set_string_j := strings.Split(vss[rounds_interface.Sorted_peer_id[i]], " ")
 		lhs := suite.G2().Point().Null()
 		for ix, jx := range verification_set_string_j {
 			tp := suite.G2().Point().Null()
@@ -131,6 +143,6 @@ func Round3_start(peer_list []string, protocolID protocol.ID) {
 			os.Exit(0)
 		}
 
-		fOfi[i] = dec
+		fOfi[rounds_interface.Sorted_peer_id[i]] = dec
 	}
 }

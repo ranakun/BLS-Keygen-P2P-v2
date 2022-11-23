@@ -148,7 +148,7 @@ func CommitmentBLS(x kyber.Scalar, m string) ([]byte, []byte, []byte) {
 
 	// return (kgd and kgc->signature)
 	kgd := []byte(r)
-	kgc := sig
+	kgc, _ := sig.MarshalBinary()
 	pk, _ := publicKey.MarshalBinary()
 	return kgd, kgc, pk
 }

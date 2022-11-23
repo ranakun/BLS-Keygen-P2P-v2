@@ -46,6 +46,25 @@ func WriteLocalStorage(message string, name string) {
 		log.Println(err)
 	}
 }
+func WriteLocalShareStorage(message string, name string, detail string) {
+	// filename := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/to " + detail + "/" + name + ".txt"
+	path := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/to " + detail + "/"
+	err := os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		log.Println(err)
+	}
+	filename := path + name + ".txt"
+	//*** peer_Data/1/EPK_j.txt will be path of file for EPK_j of peer 1
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+
+	if _, err = f.WriteString(message + "\n"); err != nil {
+		log.Println(err)
+	}
+}
 
 func process_input(s network.Stream, h host.Host) error {
 
@@ -104,17 +123,17 @@ func process_input(s network.Stream, h host.Host) error {
 	} else if message_receive.Phase == 7 && message_receive.Name == "C1" {
 		log.Println("Got C1_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 7")
-		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C1_j")
+		WriteLocalShareStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C1_j", message_receive.Detail)
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 7 && message_receive.Name == "C2" {
 		log.Println("Got C2_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 7")
-		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C2_j")
+		WriteLocalShareStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C2_j", message_receive.Detail)
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 7 && message_receive.Name == "C3" {
 		log.Println("Got C3_j: ", message_receive.Value, " from ", s.Conn().RemotePeer())
 		fmt.Println("Phase 7")
-		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C3_j")
+		WriteLocalShareStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C3_j", message_receive.Detail)
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	} else if message_receive.Phase == 11 {
 		log.Println("Lagrange*Signature:", message_receive.Value, " from ", s.Conn().RemotePeer())

@@ -39,6 +39,29 @@ func ReadPeerInfoFromFile(name string) map[string]string {
 	f.Close()
 	return d
 }
+func ReadShare(name string, detail string) string {
+	f, err := os.Open("peer_Data/" + detail + "/" + "to " + strconv.Itoa(rounds_interface.My_index) + "/" + name + ".txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// var d = make(map[string][]string)
+	var d string
+
+	// read the file line by line using scanner
+	scanner := bufio.NewScanner(f)
+
+	for scanner.Scan() {
+		res := strings.Split(scanner.Text(), ">")
+		d = res[1]
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+
+	f.Close()
+	return d
+}
 
 func Keygen(N int, T int) {
 
@@ -58,19 +81,18 @@ func Keygen(N int, T int) {
 	// status_struct.Phase = 0
 	// send_data(peer_list, "ACK", "ACK", protocolID)
 	// wait_until(0)
-
 	rounds_interface.P2p.Round = 1
 	Round1_start(peer_list, protocolID)
 	rounds_interface.P2p.Round = 2
 	Round2_start(peer_list, protocolID, N, T)
 	rounds_interface.P2p.Round = 3
-	Round3_start(peer_list, protocolID)
+	Round3_start(peer_list, protocolID, N)
 	rounds_interface.P2p.Round = 4
 	Round4_start(peer_list, protocolID)
 
 }
 
-func send_data(peer_list []string, value string, name string, protocolID protocol.ID) {
+func send_data(peer_list []string, value string, name string, protocolID protocol.ID, detail string) {
 
 	log.Println("Sending phase:", rounds_interface.Status_struct.Phase)
 	for i, item := range peer_list {
@@ -88,10 +110,11 @@ func send_data(peer_list []string, value string, name string, protocolID protoco
 		// peer_num, _ := strconv.Atoi(item)
 		// peer_num = peer_num + len(p2p.Peers)/2
 		message_send := comm.Message{
-			Phase: rounds_interface.Status_struct.Phase,
-			Name:  name,
-			Value: value,
-			To:    rounds_interface.Peer_map[item],
+			Phase:  rounds_interface.Status_struct.Phase,
+			Name:   name,
+			Value:  value,
+			To:     rounds_interface.Peer_map[item],
+			Detail: detail,
 		}
 
 		s, err := rounds_interface.P2p.Host.NewStream(rounds_interface.P2p.Ctx, peer_info.ID, protocolID)
@@ -115,7 +138,6 @@ func send_data(peer_list []string, value string, name string, protocolID protoco
 
 	}
 }
-
 func wait_until(phase int) {
 	for {
 		flag := 0

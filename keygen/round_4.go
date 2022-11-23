@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"go.dedis.ch/kyber/v3"
+	"go.dedis.ch/kyber/v3/util/encoding"
 	"main.go/bls"
 
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -55,11 +56,17 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 	} else {
 		fmt.Println("\n[*] TESTING")
 		fmt.Println("Message: ", string(msg))
-		// fmt.Println("Signature Share: ", hex.EncodeToString(sig))
 		fmt.Println("Signature Share: ", sig)
 	}
 	time.Sleep(time.Second * 5)
-	f1 := suite.G2().Scalar()
+
+	////// verify signature
+	sigg, _ := sig.MarshalBinary()
+	errr := bls.Verify(suite, rounds_interface.Round2_data.BPK_i, msg, sigg)
+	if errr != nil {
+		fmt.Println(errr)
+	}
+
 	rounds_interface.Status_struct.Phase = 10
 	fmt.Println("will participate in signing? Enter(Y/N)")
 	var reply string
@@ -67,7 +74,7 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 	wait_until(10)
 	if reply == "N" {
 		rounds_interface.Status_struct.Phase = 12
-		send_data(peer_list, "Non Participant", "FIN", protocolID)
+		send_data(peer_list, "Non Participant", "FIN", protocolID, "")
 		wait_until(12)
 		time.Sleep(time.Second * 5)
 	}
@@ -77,18 +84,24 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 		lag := Lambda(int64(rounds_interface.My_index+1), rounds_interface.T_array)
 		value := suite.Point()
 		value = value.Mul(lag, sig)
-		send_data(peer_list, value.String(), "LagXSIG", protocolID)
+		send_data(peer_list, value.String(), "LagXSIG", protocolID, "")
 		wait_until(11)
 		sum := value
 		rounds_interface.Status_struct.Phase = 12
 		msgs := ReadPeerInfoFromFile("LagXSIG_j")
 		for j := range msgs {
-			// convert string to kyber.scalar
-			a, _ := hex.DecodeString(j)
-			sum = sum.Add(sum, f1.SetBytes(a))
+			// convert string to kyber.point
+			a, _ := encoding.StringHexToPoint(suite.G1(), j)
+			sum = sum.Add(sum, a)
 		}
-		// fmt.Println("FIN: ",sum)
-		send_data(peer_list, sum.String(), "FIN", protocolID)
+		//// verify combined signature
+		summ, _ := sum.MarshalBinary()
+		e := bls.Verify(suite, global_public_key, msg, summ)
+		if e != nil {
+			fmt.Println(e)
+		}
+
+		send_data(peer_list, sum.String(), "FIN", protocolID, "")
 		wait_until(12)
 		time.Sleep(time.Second * 5)
 	}

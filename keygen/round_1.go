@@ -18,7 +18,7 @@ func Round1_start(peer_list []string, protocolID protocol.ID) {
 	ESK_i, EPK_i := elgamal.KeyGen(curve)
 	fmt.Println("\nElgmal Private:" + string(ESK_i.BigInt().String()))
 	mar := EPK_i.ToAffineCompressed()
-	send_data(peer_list, hex.EncodeToString(mar), "epk_j", protocolID)
+	send_data(peer_list, hex.EncodeToString(mar), "epk_j", protocolID, "")
 	wait_until(1)
 
 	rounds_interface.Round1_data.EPK_i = EPK_i

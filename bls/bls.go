@@ -64,6 +64,7 @@ func Sign(suite pairing.Suite, x kyber.Scalar, msg []byte) (kyber.Point, error) 
 	// if err != nil {
 	// 	return nil, err
 	// }
+	// return s, nil
 	return xHM, nil
 }
 

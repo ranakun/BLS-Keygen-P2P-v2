@@ -73,6 +73,9 @@ type Round2_Data struct {
 
 type Round3_Data struct {
 	FOfi map[string]string
+	C1   curves.Point
+	C2   string
+	C3   []byte
 }
 
 var Round1_data Round1_Data
