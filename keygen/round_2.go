@@ -3,6 +3,7 @@ package keygen
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/libp2p/go-libp2p-core/protocol"
 	"go.dedis.ch/kyber/v3"
@@ -29,7 +30,7 @@ func Round2_start(peer_list []string, protocolID protocol.ID, N int, T int) {
 	wait_until(2)
 
 	rounds_interface.Round2_data.Suite = suite
-	rounds_interface.Round2_data.BPK_i = BPK_i
+	rounds_interface.Round2_data.BPK_i = string(dst2)
 	rounds_interface.Round2_data.BPK_j = ReadPeerInfoFromFile("BPK_j")
 
 	rounds_interface.Status_struct.Phase = 3
@@ -54,6 +55,8 @@ func Round2_start(peer_list []string, protocolID protocol.ID, N int, T int) {
 	send_data(peer_list, vssArray[1:len(vssArray)-1], "Vset", protocolID, "")
 	wait_until(3)
 
+	vss := strings.Split(vssArray[1:len(vssArray)-1], " ")
+	rounds_interface.Round2_data.Vss = vss
 	kgd, kgc, SpubKey := zkp.SetupBLS(BSK_i)
 
 	//Send kgc_i values

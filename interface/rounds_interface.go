@@ -6,7 +6,6 @@ import (
 
 	"github.com/coinbase/kryptology/pkg/core/curves"
 	"github.com/libp2p/go-libp2p-core/host"
-	"go.dedis.ch/kyber/v3"
 	"go.dedis.ch/kyber/v3/pairing/bn256"
 	"go.dedis.ch/kyber/v3/share"
 )
@@ -65,10 +64,11 @@ type Round1_Data struct {
 }
 
 type Round2_Data struct {
-	BPK_i  kyber.Point
+	BPK_i  string
 	BPK_j  map[string]string
 	Shares []*share.PriShare
 	Suite  *bn256.Suite
+	Vss    []string
 }
 
 type Round3_Data struct {

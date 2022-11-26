@@ -42,8 +42,8 @@ func KeyGen(suite pairing.Suite, random cipher.Stream) (kyber.Scalar, kyber.Poin
 
 // Sign creates a BLS signature S = x * H(m) on a message m using the private
 // key x. The signature S is a point on curve G1.
-// func Sign(suite pairing.Suite, x kyber.Scalar, msg []byte) ([]byte, error) {
-func Sign(suite pairing.Suite, x kyber.Scalar, msg []byte) (kyber.Point, error) {
+func Sign(suite pairing.Suite, x kyber.Scalar, msg []byte) ([]byte, error) {
+	// func Sign(suite pairing.Suite, x kyber.Scalar, msg []byte) (kyber.Point, error) {
 	// checks if private key is not null
 	if x.Equal(suite.G2().Scalar().Zero()) {
 		return nil, errors.New("ERR: Private Key NULL error")
@@ -60,12 +60,12 @@ func Sign(suite pairing.Suite, x kyber.Scalar, msg []byte) (kyber.Point, error) 
 	HM := hashable.Hash(msg)
 	xHM := HM.Mul(x, HM)
 
-	// s, err := xHM.MarshalBinary()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// return s, nil
-	return xHM, nil
+	s, err := xHM.MarshalBinary()
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
+	// return xHM, nil
 }
 
 // Verify checks the given BLS signature S on the message m using the public

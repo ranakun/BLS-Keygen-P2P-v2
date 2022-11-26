@@ -141,13 +141,9 @@ func process_input(s network.Stream, h host.Host) error {
 		fmt.Println("Phase 7")
 		WriteLocalShareStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "C3_j", message_receive.Detail)
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
-	} else if message_receive.Phase == 9 {
-		log.Println("Lagrange*Signature:", message_receive.Value, " from ", s.Conn().RemotePeer())
-		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "LagXSIG_j")
-		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
-	} else if message_receive.Phase == 10 {
-		log.Println("FIN:", message_receive.Value)
-		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "FIN")
+	} else if message_receive.Phase == 8 {
+		log.Println("Signature Share:", message_receive.Value, " from ", s.Conn().RemotePeer())
+		WriteLocalStorage(s.Conn().RemotePeer().String()+">"+message_receive.Value, "SIG_j")
 		Acknowledge(s.Conn().RemotePeer().String(), message_receive.Phase, h)
 	}
 

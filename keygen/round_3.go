@@ -83,35 +83,45 @@ func Round3_start(peer_list []string, protocolID protocol.ID, N int) {
 	vss := ReadPeerInfoFromFile("Vset")
 	fOfi := make(map[string]string)
 	for i := 0; i < N; i++ {
-		if i == rounds_interface.My_index {
-			continue
-		}
-		C1j := ReadShare("C1_j", fmt.Sprint(i))
-		C2j := ReadShare("C2_j", fmt.Sprint(i))
-		C3j := ReadShare("C3_j", fmt.Sprint(i))
 		C1_j := curve.Point
-		C1_j_Temp, err := hex.DecodeString(C1j)
-		// C1_j_Temp, err := hex.DecodeString(j[0])
-		if err != nil {
-			fmt.Println("0", err, C1j)
-			// fmt.Println("0", err, C1j[i][0])
-		}
-		C1_j, err = C1_j.FromAffineCompressed(C1_j_Temp)
-		if err != nil {
-			fmt.Println("1", err, C1_j_Temp, 1)
-			// fmt.Println("1", err, C1_j_Temp, rounds_interface.My_index)
-		}
-
-		C2_j := C2j
-		C3_j, err := hex.DecodeString(C3j)
-		// C3_j, err := hex.DecodeString(C3j[i][0])
-		if err != nil {
-			fmt.Println("2", err)
-		}
-
+		var C2_j string
+		var C3_j []byte
+		var verification_set_string_j []string
 		epkj := curve.Point
-		epkj_temp, _ := hex.DecodeString(EPK_j[rounds_interface.Sorted_peer_id[i]])
-		epkj, _ = epkj.FromAffineCompressed(epkj_temp)
+		if i == rounds_interface.My_index {
+			// C1_j = rounds_interface.Round3_data.C1
+			// C2_j = rounds_interface.Round3_data.C2
+			// C3_j = rounds_interface.Round3_data.C3
+			// epkj = EPK_i
+			// verification_set_string_j = rounds_interface.Round2_data.Vss
+			continue
+		} else {
+			C1j := ReadShare("C1_j", fmt.Sprint(i))
+			C2j := ReadShare("C2_j", fmt.Sprint(i))
+			C3j := ReadShare("C3_j", fmt.Sprint(i))
+			C1_j_Temp, err := hex.DecodeString(C1j)
+			// C1_j_Temp, err := hex.DecodeString(j[0])
+			if err != nil {
+				fmt.Println("0", err, C1j)
+				// fmt.Println("0", err, C1j[i][0])
+			}
+			C1_j, err = C1_j.FromAffineCompressed(C1_j_Temp)
+			if err != nil {
+				fmt.Println("1", err, C1_j_Temp, 1)
+				// fmt.Println("1", err, C1_j_Temp, rounds_interface.My_index)
+			}
+
+			C2_j = C2j
+			C3_j, err = hex.DecodeString(C3j)
+			// C3_j, err := hex.DecodeString(C3j[i][0])
+			if err != nil {
+				fmt.Println("2", err)
+			}
+			epkj_temp, _ := hex.DecodeString(EPK_j[rounds_interface.Sorted_peer_id[i]])
+			epkj, _ = epkj.FromAffineCompressed(epkj_temp)
+			verification_set_string_j = strings.Split(vss[rounds_interface.Sorted_peer_id[i]], " ")
+		}
+
 		dec, err1 := elgamal.AuthDecryption(C1_j, C2_j, C3_j, epkj, EPK_i, ESK_i)
 		if !err1 {
 			fmt.Println("Decryption Error -- ", rounds_interface.My_index)
@@ -123,7 +133,6 @@ func Round3_start(peer_list []string, protocolID protocol.ID, N int) {
 		fi := suite.G2().Scalar()
 		fi.UnmarshalBinary(mar)
 
-		verification_set_string_j := strings.Split(vss[rounds_interface.Sorted_peer_id[i]], " ")
 		lhs := suite.G2().Point().Null()
 		for ix, jx := range verification_set_string_j {
 			tp := suite.G2().Point().Null()
@@ -146,4 +155,5 @@ func Round3_start(peer_list []string, protocolID protocol.ID, N int) {
 
 		fOfi[rounds_interface.Sorted_peer_id[i]] = dec
 	}
+	rounds_interface.Round3_data.FOfi = fOfi
 }
