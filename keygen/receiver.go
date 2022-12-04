@@ -47,6 +47,7 @@ func WriteLocalStorage(message string, name string) {
 		log.Println(err)
 	}
 }
+
 func WriteLocalShareStorage(message string, name string, detail string) {
 	// filename := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/to " + detail + "/" + name + ".txt"
 	res := strings.Split(detail, ">")

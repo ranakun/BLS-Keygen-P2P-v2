@@ -3,6 +3,9 @@ package keygen
 import (
 	"encoding/hex"
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 	"strings"
 
 	"github.com/libp2p/go-libp2p-core/protocol"
@@ -18,7 +21,10 @@ import (
 func Round2_start(peer_list []string, protocolID protocol.ID, N int, T int) {
 	// BLS Phase
 	rounds_interface.Status_struct.Phase = 2
+	// get this suite from a file
 	suite := bn256.NewSuite()
+	fmt.Println("[+] Suite: ", suite.G2())
+	SaveSuite(suite.String(), "Suite")
 	BSK_i, BPK_i := bls.KeyGen(suite, random.New())
 	fmt.Println("\n[+] BLS Setup Done")
 	mar, _ := BPK_i.MarshalBinary()
@@ -72,4 +78,17 @@ func Round2_start(peer_list []string, protocolID protocol.ID, N int, T int) {
 	send_data(peer_list, hex.EncodeToString(kgd), "kgd_j", protocolID, "")
 	wait_until(6)
 
+}
+
+func SaveSuite(message string, name string) {
+	filename := "peer_Data/" + strconv.Itoa(rounds_interface.My_index) + "/" + name + ".txt"
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		log.Println(err)
+	}
+	defer f.Close()
+
+	if _, err = f.WriteString(message + "\n"); err != nil {
+		log.Println(err)
+	}
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 
 	"time"
 
@@ -49,12 +50,12 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 	f, _ := os.Create(strconv.Itoa(rounds_interface.My_index) + "private_share.txt")
 	f.WriteString(fmt.Sprint(private_key_share))
 
-	t := verify_GPK()
-	if !t.Equal(global_public_key) {
-		fmt.Println("[+] GPK VERIFICATION FAILED")
-	} else {
-		fmt.Println("[+] GPK VERIFIED")
-	}
+	// t := verify_GPK()
+	// if !t.Equal(global_public_key) {
+	// 	fmt.Println("[+] GPK VERIFICATION FAILED")
+	// } else {
+	// 	fmt.Println("[+] GPK VERIFIED")
+	// }
 
 	mar, _ := global_public_key.MarshalBinary()
 	fmt.Println("\n+++ GLOBAL PUBLIC KEY +++\n", hex.EncodeToString(mar))
@@ -66,7 +67,7 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 	} else {
 		fmt.Println("\n[*] TESTING")
 		fmt.Println("Message: ", string(msg))
-		fmt.Println("Signature Share: ", sig)
+		fmt.Println("Signature Share: ", hex.EncodeToString(sig))
 	}
 	time.Sleep(time.Second * 5)
 
@@ -75,60 +76,64 @@ func Round4_start(peer_list []string, protocolID protocol.ID) {
 	errr := bls.Verify(suite, public_key_share, msg, sig)
 	if errr != nil {
 		fmt.Println(errr)
-		fmt.Println("[+] key share verification failed")
+		fmt.Println("[+] signature share verification failed")
 	}
 
-	// fmt.Println("will participate in signing? Enter(Y/N)")
-	// var reply string
-	// fmt.Scan(&reply)
-	reply := "Y"
-	if reply == "N" {
+	fmt.Println("[+] Will participate in signing? Enter(y/n)")
+	var reply string
+	fmt.Scan(&reply)
+	time.Sleep(time.Second * 8)
+	// reply := "Y"
+	if reply == "n" || reply == "N" {
 		rounds_interface.Status_struct.Phase = 8
-		send_data(peer_list, "Non Participant", "SIG", protocolID, "")
-		wait_until(8)
+		// send_data(peer_list, "Non Participant", "SIG", protocolID, "")
+		fmt.Println("Non Participant")
+		// wait_until(8)
 	}
 
-	if reply == "Y" {
-		// sending signature share * Lagrange's value
+	if reply == "y" || reply == "Y" {
+		// sending index and signature share
 		rounds_interface.Status_struct.Phase = 8
-		tt := []int{1, 2}
-		lag_1 := Lambda(1, tt)
-		lag_2 := Lambda(2, tt)
-		lag_2.Neg(lag_2)
-		if rounds_interface.My_index == 1 {
-			lag_2 = Lambda(1, tt)
-			lag_1 = Lambda(2, tt)
+		temp := fmt.Sprint(rounds_interface.My_index) + " " + hex.EncodeToString(sig)
+		send_data(peer_list, temp, "SIG", protocolID, "")
+		// wait_until(8)
+		time.Sleep(time.Second * 5)
+
+		// getting signatures
+		msgs := ReadPeerInfoFromFile("SIG_j")
+		var T_array []int
+		var sigs = make(map[int]string)
+		for _, j := range msgs {
+			res := strings.Split(j, " ")
+			ind, _ := strconv.Atoi(res[0])
+			T_array = append(T_array, ind+1)
+			sigs[ind+1] = res[1]
 		}
-		sig_i := suite.G1().Point()
-		err123 := sig_i.UnmarshalBinary(sig)
-		if err123 != nil {
-			fmt.Print("ERR ")
-		}
-		lagxSig := suite.G1().Point().Mul(lag_1, sig_i)
-		abc, _ := lagxSig.MarshalBinary()
-		send_data(peer_list, hex.EncodeToString(abc), "SIG", protocolID, "")
-		wait_until(8)
+		T_array = append(T_array, rounds_interface.My_index+1)
+		sigs[rounds_interface.My_index+1] = hex.EncodeToString(sig)
 
 		// combining signatures
-		msgs := ReadPeerInfoFromFile("SIG_j")
-		sum := lagxSig
-		for _, j := range msgs {
-			temp, _ := hex.DecodeString(j) // string -> hex decode byte array
+		sum := suite.G1().Point()
+		for _, j := range T_array {
+			temp, _ := hex.DecodeString(sigs[j])
 			sigj := suite.G1().Point()
-			err123 := sigj.UnmarshalBinary(temp) // hex decode byte array -> unmar point: UP
+			err123 := sigj.UnmarshalBinary(temp)
 			if err123 != nil {
-				fmt.Print("ERR ")
+				fmt.Print(err123)
 			}
-			sum = sum.Add(sum, sigj)
+			lag_j := Lambda(int64(j), T_array)
+			lagxSig := suite.G1().Point().Mul(lag_j, sigj)
+			sum = sum.Add(sum, lagxSig)
 		}
+
 		/// verify combined signature
 		summ, _ := sum.MarshalBinary()
 		e := bls.Verify(suite, global_public_key, msg, summ)
 		if e != nil {
 			fmt.Println(e)
-			fmt.Println("**Failure**")
+			fmt.Println("*Failure*")
 		} else {
-			fmt.Println("**Success**")
+			fmt.Println("*Success*")
 		}
 	}
 }
@@ -165,16 +170,20 @@ func verify_GPK() kyber.Point {
 	fmt.Println("[+] VERIFYING GPK")
 	for i := 0; i < 2; i++ {
 		file, _ := os.Open(fmt.Sprint(i) + "private_share.txt")
-		// temp, _ := encoding.ReadHexScalar(rounds_interface.Round2_data.Suite.G2(), file)
 		scanner := bufio.NewScanner(file)
 		var res string
 		for scanner.Scan() {
 			res = scanner.Text()
 		}
-		temp, _ := encoding.StringHexToScalar(ps, res)
+		temp, e := encoding.StringHexToScalar(ps, res)
+		if e != nil {
+			fmt.Println(e)
+		}
 		lag := Lambda(int64(i+1), tt)
-		tempt := suite.G2().Point().Mul(temp, suite.G2().Point().Base())
+		tempt := suite.G2().Point().Mul(temp, nil)
+		fmt.Println("Verification in process 1")
 		prod := ps.Point().Mul(lag, tempt)
+		fmt.Println("Verification in process 2")
 		sum.Add(sum, prod)
 		file.Close()
 	}

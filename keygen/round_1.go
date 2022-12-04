@@ -15,6 +15,8 @@ func Round1_start(peer_list []string, protocolID protocol.ID) {
 	// Elgamal Phase
 	rounds_interface.Status_struct.Phase = 1
 	curve := elgamal.Setup() // Choosen curve : ED25519
+	fmt.Println("[+] curve: ", curve)
+	// curveTemp := curve.
 	ESK_i, EPK_i := elgamal.KeyGen(curve)
 	fmt.Println("\nElgmal Private:" + string(ESK_i.BigInt().String()))
 	mar := EPK_i.ToAffineCompressed()

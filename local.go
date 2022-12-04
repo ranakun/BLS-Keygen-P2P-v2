@@ -10,15 +10,17 @@ import (
 )
 
 func local() {
-	// fmt.Println("Enter number of peers: ")
-	// var N int
-	// fmt.Scan(&N)
-	// fmt.Println("Enter Threshold: ")
-	// var T int
-	// fmt.Scan(&T)
+	fmt.Println("Enter number of peers: ")
+	var N int
+	fmt.Scan(&N)
+	fmt.Println("Enter Threshold: ")
+	var T int
+	fmt.Scan(&T)
 	fmt.Println("Enter all addresses seperated by ',' and no space: ")
 	var inp_strings string
 	fmt.Scan(&inp_strings)
+	var d time.Duration = time.Duration(N * 5)
+	time.Sleep(time.Second * d)
 	rounds_interface.Peer_details_list = strings.Split(inp_strings, ",")
 
 	var random int
@@ -27,10 +29,10 @@ func local() {
 	keygen.Host_acknowledge(rounds_interface.P2p.Host)
 	fmt.Println("Enter int value to continue")
 	fmt.Scan(&random)
-	time.Sleep(time.Second * 5)
+	d = time.Duration(T * 2)
+	time.Sleep(time.Second * d)
 
 	test_conn()
-	keygen.Keygen(2, 2)
-	// keygen.Keygen(N, T)
+	keygen.Keygen(N, T)
 
 }
